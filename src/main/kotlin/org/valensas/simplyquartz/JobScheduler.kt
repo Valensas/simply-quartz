@@ -9,6 +9,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.context.event.ApplicationStartedEvent
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
+import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
@@ -23,7 +24,7 @@ class MainClassHolder : ApplicationListener<ApplicationStartedEvent> {
     }
 }
 
-@Component
+@Configuration
 @ConditionalOnProperty("simplyquartz.enabled", havingValue = "true")
 class JobScheduler(
     private val scheduler: Scheduler,
@@ -35,7 +36,6 @@ class JobScheduler(
 
     @EventListener(ApplicationReadyEvent::class)
     fun onApplicationReady() {
-        logger.info("${simplyQuartzProperties.enabled}")
         logger.info("Scheduling jobs")
         scanAndScheduleJobs()
     }
