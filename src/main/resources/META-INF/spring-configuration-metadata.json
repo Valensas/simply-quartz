@@ -8,9 +8,9 @@
       "sourceType": "com.valensas.simplyquartz.SimplyQuartzProperties"
     },
     {
-      "name": "simplyquartz.packageToScan",
-      "type": "string",
-      "default": null,
+      "name": "simplyquartz.packagesToScan",
+      "type": "List<String>",
+      "default": [],
       "sourceType": "com.valensas.simplyquartz.SimplyQuartzProperties"
     },
     {

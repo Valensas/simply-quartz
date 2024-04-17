@@ -3,6 +3,7 @@ package com.valensas.simplyquartz
 import org.quartz.*
 import org.quartz.impl.matchers.GroupMatcher
 import org.reflections.Reflections
+import org.reflections.util.ConfigurationBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -42,8 +43,12 @@ class JobScheduler(
         val existingJobKeysSet = scheduler.getJobKeys(GroupMatcher.anyGroup()).toSet()
         val newJobKeysSet = mutableSetOf<JobKey>()
 
-        val jobsSearchRootPackage = determineJobsSearchPathRootPackage()
-        val reflections = Reflections(jobsSearchRootPackage)
+        val jobsSearchPackages = determineJobsSearchPathRootPackage()
+        val reflections = Reflections(
+            ConfigurationBuilder()
+                .forPackages(*jobsSearchPackages.toTypedArray())
+        )
+
         reflections.getSubTypesOf(Job::class.java).forEach { jobClass ->
             jobClass.getAnnotation(QuartzSchedule::class.java)?.let { scheduleAnnotation ->
                 val jobName =
@@ -75,9 +80,9 @@ class JobScheduler(
     }
 
     // Get the root package for job scanning, defaulting to the package of the main application class
-    private fun determineJobsSearchPathRootPackage(): String {
-        return simplyQuartzProperties.packageToScan
-            ?: mainClassHolder.mainApplicationClass?.`package`?.name
+    private fun determineJobsSearchPathRootPackage(): List<String> {
+        return simplyQuartzProperties.packagesToScan
+            ?: mainClassHolder.mainApplicationClass?.`package`?.name?.let { listOf(it) }
             ?: throw IllegalStateException("Unable to determine base package for job scanning")
     }
 

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties("simplyquartz")
 class SimplyQuartzProperties {
     var enabled: Boolean = true
-    var packageToScan: String? = null
+    var packagesToScan: List<String>? = null
     var defaultJobGroupName: String = "main"
 }
