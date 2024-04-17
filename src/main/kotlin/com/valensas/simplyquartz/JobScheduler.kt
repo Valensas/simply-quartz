@@ -11,11 +11,9 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
-
 
 // Need to get the main application class to determine the root package for job scanning at runtime
-@Component
+@Configuration
 class MainClassHolder : ApplicationListener<ApplicationStartedEvent> {
     var mainApplicationClass: Class<*>? = null
 
@@ -41,8 +39,7 @@ class JobScheduler(
     }
 
     private fun scanAndScheduleJobs() {
-
-        val existingJobKeysSet  = scheduler.getJobKeys(GroupMatcher.anyGroup()).toSet()
+        val existingJobKeysSet = scheduler.getJobKeys(GroupMatcher.anyGroup()).toSet()
         val newJobKeysSet = mutableSetOf<JobKey>()
 
         val jobsSearchRootPackage = determineJobsSearchPathRootPackage()
@@ -54,7 +51,7 @@ class JobScheduler(
                         .ifBlank { jobClass.simpleName }
                 val jobGroup =
                     resolveEnvironmentPlaceholders(scheduleAnnotation.jobGroup)
-                        .ifBlank { resolveEnvironmentPlaceholders(simplyQuartzProperties.defaultJobsGroupName) }
+                        .ifBlank { resolveEnvironmentPlaceholders(simplyQuartzProperties.defaultJobGroupName) }
                 val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
                 scheduleJob(jobClass, jobName, jobGroup, cronExpression)
                 newJobKeysSet.add(JobKey.jobKey(jobName, jobGroup))
@@ -79,7 +76,7 @@ class JobScheduler(
 
     // Get the root package for job scanning, defaulting to the package of the main application class
     private fun determineJobsSearchPathRootPackage(): String {
-        return simplyQuartzProperties.jobsSearchPathRootPackage
+        return simplyQuartzProperties.packageToScan
             ?: mainClassHolder.mainApplicationClass?.`package`?.name
             ?: throw IllegalStateException("Unable to determine base package for job scanning")
     }
