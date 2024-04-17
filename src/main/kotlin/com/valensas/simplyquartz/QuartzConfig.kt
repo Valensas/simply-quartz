@@ -1,4 +1,4 @@
-package org.valensas.simplyquartz
+package com.valensas.simplyquartz
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.quartz.QuartzDataSource

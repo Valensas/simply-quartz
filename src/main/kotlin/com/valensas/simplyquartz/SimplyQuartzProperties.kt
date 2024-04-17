@@ -1,4 +1,4 @@
-package org.valensas.simplyquartz
+package com.valensas.simplyquartz
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component

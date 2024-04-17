@@ -1,4 +1,4 @@
-package org.valensas.simplyquartz
+package com.valensas.simplyquartz
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)

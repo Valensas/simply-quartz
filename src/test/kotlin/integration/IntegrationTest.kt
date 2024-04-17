@@ -4,7 +4,7 @@ import org.quartz.Job
 import org.quartz.JobExecutionContext
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.valensas.simplyquartz.QuartzSchedule
+import com.valensas.simplyquartz.QuartzSchedule
 
 @SpringBootApplication
 class IntegrationTest {

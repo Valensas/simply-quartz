@@ -1,4 +1,4 @@
-package org.valensas.simplyquartz
+package com.valensas.simplyquartz
 
 import org.quartz.*
 import org.quartz.impl.matchers.GroupMatcher

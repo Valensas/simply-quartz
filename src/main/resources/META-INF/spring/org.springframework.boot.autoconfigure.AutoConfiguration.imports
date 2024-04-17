@@ -1,3 +1,3 @@
-org.valensas.simplyquartz.MainClassHolder
-org.valensas.simplyquartz.SimplyQuartzProperties
-org.valensas.simplyquartz.JobScheduler
+com.valensas.simplyquartz.MainClassHolder
+com.valensas.simplyquartz.SimplyQuartzProperties
+com.valensas.simplyquartz.JobScheduler
