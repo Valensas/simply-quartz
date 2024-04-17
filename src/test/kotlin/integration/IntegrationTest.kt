@@ -1,16 +1,13 @@
 package integration
 
+import com.valensas.simplyquartz.QuartzSchedule
 import org.quartz.Job
 import org.quartz.JobExecutionContext
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import com.valensas.simplyquartz.QuartzSchedule
 
 @SpringBootApplication
-class IntegrationTest {
-
-}
-
+class IntegrationTest
 
 @QuartzSchedule(cron = "0/5 * * * * ?")
 class SampleJob : Job {
@@ -19,8 +16,6 @@ class SampleJob : Job {
     }
 }
 
-
 fun main(args: Array<String>) {
     runApplication<IntegrationTest>(*args)
-
 }
