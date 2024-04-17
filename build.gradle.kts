@@ -33,16 +33,17 @@ repositories {
 }
 
 dependencies {
+
     implementation("org.springframework.boot:spring-boot-starter-quartz:3.2.0")
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.reflections:reflections:0.10.2")
 
+    // Job Store
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("com.mchange:c3p0")
 
-    implementation("org.flywaydb:flyway-core")
-
-
-    runtimeOnly("org.postgresql:postgresql")
+    // Test
+    testImplementation("org.flywaydb:flyway-core")
+    testRuntimeOnly("org.postgresql:postgresql")
 
 }
 
@@ -57,13 +58,4 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-tasks.bootRun {
-    doFirst {
-        systemProperty("database.user", System.getenv("DATABASE_USER") ?: "db_user")
-        systemProperty("database.password", System.getenv("DATABASE_PASSWORD") ?: "db_pass")
-        systemProperty("database.endpoint", System.getenv("DATABASE_ENDPOINT") ?: "localhost:5432")
-        systemProperty("database.name", System.getenv("DATABASE_NAME") ?: "simplyquartz_test")
-    }
 }
