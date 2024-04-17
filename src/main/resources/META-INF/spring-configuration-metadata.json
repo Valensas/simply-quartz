@@ -1,0 +1,24 @@
+{
+  "groups": [],
+  "properties": [
+    {
+      "name": "simplyquartz.enabled",
+      "type": "bool",
+      "default": false,
+      "sourceType": "com.valensas.simplyquartz.SimplyQuartzProperties"
+    },
+    {
+      "name": "simplyquartz.packageToScan",
+      "type": "string",
+      "default": null,
+      "sourceType": "com.valensas.simplyquartz.SimplyQuartzProperties"
+    },
+    {
+      "name": "simplyquartz.defaultJobGroupName",
+      "type": "string",
+      "default": "main",
+      "sourceType": "com.valensas.simplyquartz.SimplyQuartzProperties"
+    }
+  ],
+  "hints": []
+}
