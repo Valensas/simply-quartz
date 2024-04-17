@@ -12,7 +12,6 @@ services:
     volumes:
       - simplyquartz_test:/var/lib/postgresql/data
 
-
 volumes:
   simplyquartz_test:
     driver: local

@@ -1,0 +1,3 @@
+org.valensas.simplyquartz.MainClassHolder
+org.valensas.simplyquartz.SimplyQuartzProperties
+org.valensas.simplyquartz.JobScheduler

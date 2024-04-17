@@ -1,22 +1,17 @@
 package org.valensas.simplyquartz
 
-import org.quartz.CronScheduleBuilder
-import org.quartz.Job
-import org.quartz.Scheduler
-import org.quartz.TriggerBuilder
-import org.quartz.JobBuilder
-import org.quartz.JobKey
+import org.quartz.*
+import org.quartz.impl.matchers.GroupMatcher
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.event.EventListener
-import org.reflections.Reflections
-import org.springframework.context.ApplicationContext
-
 import org.springframework.boot.context.event.ApplicationStartedEvent
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+
 
 // Need to get the main application class to determine the root package for job scanning at runtime
 @Component
@@ -28,6 +23,7 @@ class MainClassHolder : ApplicationListener<ApplicationStartedEvent> {
     }
 }
 
+@Component
 @ConditionalOnProperty("simplyquartz.enabled", havingValue = "true")
 class JobScheduler(
     private val scheduler: Scheduler,
@@ -39,12 +35,16 @@ class JobScheduler(
 
     @EventListener(ApplicationReadyEvent::class)
     fun onApplicationReady() {
-        logger.info("${applicationContext.environment.getProperty("simplyquartz.defaultJobsGroupName")}")
+        logger.info("${simplyQuartzProperties.enabled}")
         logger.info("Scheduling jobs")
         scanAndScheduleJobs()
     }
 
     private fun scanAndScheduleJobs() {
+
+        val existingJobKeysSet  = scheduler.getJobKeys(GroupMatcher.anyGroup()).toSet()
+        val newJobKeysSet = mutableSetOf<JobKey>()
+
         val jobsSearchRootPackage = determineJobsSearchPathRootPackage()
         val reflections = Reflections(jobsSearchRootPackage)
         reflections.getSubTypesOf(Job::class.java).forEach { jobClass ->
@@ -57,8 +57,20 @@ class JobScheduler(
                         .ifBlank { resolveEnvironmentPlaceholders(simplyQuartzProperties.defaultJobsGroupName) }
                 val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
                 scheduleJob(jobClass, jobName, jobGroup, cronExpression)
+                newJobKeysSet.add(JobKey.jobKey(jobName, jobGroup))
             }
         }
+
+        val jobKeysToBeRemoved = existingJobKeysSet.minus(newJobKeysSet)
+
+        jobKeysToBeRemoved.forEach { jobKey ->
+            logger.info("Removing undeclared job ${jobKey.name}")
+            scheduler.deleteJob(jobKey)
+        }
+
+        logger.info("Starting scheduler")
+
+        scheduler.start()
     }
 
     private fun resolveEnvironmentPlaceholders(value: String): String {

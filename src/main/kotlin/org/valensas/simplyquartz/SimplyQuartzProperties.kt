@@ -1,8 +1,9 @@
 package org.valensas.simplyquartz
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.NestedConfigurationProperty
+import org.springframework.stereotype.Component
 
+@Component
 @ConfigurationProperties("simplyquartz")
 class SimplyQuartzProperties {
     var enabled: Boolean = true
