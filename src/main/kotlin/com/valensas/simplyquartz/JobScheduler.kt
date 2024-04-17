@@ -95,6 +95,22 @@ class JobScheduler(
             .build()
 
         if (scheduler.checkExists(jobKey)) {
+            // Check if the job class still exists
+            // quartz uses class in getJobDetail (called by rescheduleJob), this throws an error if a class is moved because job key is not
+            // dependent on the class' path but is used to determine jobs to reschedule
+            // While Iterating over implementors of Job class, an existing job name will be found,
+            // but the class will no longer exist at the path, so we need to catch the exception and reschedule the job
+            // after deleting the existing job
+
+            try {
+                scheduler.getJobDetail(jobKey)
+            } catch (e: SchedulerException) {
+                logger.warn("Job class or job detail of $jobName has been removed, removing the job from the scheduler")
+                scheduler.deleteJob(jobKey)
+                scheduler.scheduleJob(jobDetail, newTrigger)
+                return
+            }
+
             scheduler.rescheduleJob(newTrigger.key, newTrigger)
         } else {
             scheduler.scheduleJob(jobDetail, newTrigger)
