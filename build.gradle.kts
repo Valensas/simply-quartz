@@ -42,17 +42,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
 }
 
-
-
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += "-Xjsr305=strict"
         jvmTarget = "21"
     }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 tasks.named("processAot") {
