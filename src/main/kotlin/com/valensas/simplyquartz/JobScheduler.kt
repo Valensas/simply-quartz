@@ -1,6 +1,12 @@
 package com.valensas.simplyquartz
 
-import org.quartz.*
+import org.quartz.CronScheduleBuilder
+import org.quartz.Job
+import org.quartz.JobBuilder
+import org.quartz.JobKey
+import org.quartz.Scheduler
+import org.quartz.SchedulerException
+import org.quartz.TriggerBuilder
 import org.quartz.impl.matchers.GroupMatcher
 import org.reflections.Reflections
 import org.reflections.util.ConfigurationBuilder
