@@ -35,18 +35,12 @@ repositories {
 }
 
 dependencies {
-
     implementation("org.springframework.boot:spring-boot-starter-quartz:3.2.0")
     implementation("org.reflections:reflections:0.10.2")
 
     // Job Store
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("com.mchange:c3p0")
-
-    // Test
-    testImplementation("org.flywaydb:flyway-core")
-    testRuntimeOnly("org.postgresql:postgresql")
-
 }
 
 
