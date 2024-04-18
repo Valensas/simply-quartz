@@ -1,0 +1,18 @@
+{
+  "groups": [],
+  "properties": [
+    {
+      "name": "simplyquartz.enabled",
+      "type": "bool",
+      "default": true,
+      "sourceType": "com.valensas.simplyquartz.SimplyQuartzProperties"
+    },
+    {
+      "name": "simplyquartz.packagesToScan",
+      "type": "List<String>",
+      "default": [],
+      "sourceType": "com.valensas.simplyquartz.SimplyQuartzProperties"
+    }
+  ],
+  "hints": []
+}

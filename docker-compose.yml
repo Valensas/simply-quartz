@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_pass
+      POSTGRES_DB: simplyquartz_test
+    ports:
+      - "5432:5432"
+    volumes:
+      - simplyquartz_test:/var/lib/postgresql/data
+
+volumes:
+  simplyquartz_test:
+    driver: local

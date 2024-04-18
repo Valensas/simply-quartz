@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: simply_quartz_test
+
+  flyway:
+    baselineOnMigrate: true
+    enabled: true
+    table: flyway_${spring.application.name}_schema_history
+  datasource:
+    username: ${database.user}
+    password: ${database.password}
+    url: jdbc:postgresql://${database.endpoint}/${database.name}
+    driver-class-name: org.postgresql.Driver
+
+  quartz:
+    auto-startup: false
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.jobStore.dataSource: quartz_ds
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.isClustered: true
+      org.quartz.dataSource.quartz_ds.URL: ${spring.datasource.url}
+      org.quartz.dataSource.quartz_ds.user: ${spring.datasource.username}
+      org.quartz.dataSource.quartz_ds.password: ${spring.datasource.password}
+      org.quartz.dataSource.quartz_ds.driver: org.postgresql.Driver
+      org.quartz.dataSource.quartz_ds.provider: c3p0
+      org.quartz.dataSource.quartz_ds.validationQuery: select 1
+
+database:
+  endpoint: localhost:5432
+  name: simplyquartz_test
+  user: db_user
+  password: db_pass
+
+simplyquartz:
+  enabled: true
