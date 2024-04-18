@@ -8,5 +8,4 @@ import org.springframework.stereotype.Component
 class SimplyQuartzProperties {
     var enabled: Boolean = true
     var packagesToScan: List<String>? = null
-    var defaultJobGroupName: String = "main"
 }

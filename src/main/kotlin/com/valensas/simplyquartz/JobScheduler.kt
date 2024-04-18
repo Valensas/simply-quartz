@@ -5,7 +5,6 @@ import org.quartz.Job
 import org.quartz.JobBuilder
 import org.quartz.JobKey
 import org.quartz.Scheduler
-import org.quartz.SchedulerException
 import org.quartz.TriggerBuilder
 import org.quartz.impl.matchers.GroupMatcher
 import org.reflections.Reflections
@@ -62,7 +61,7 @@ class JobScheduler(
                         .ifBlank { jobClass.simpleName }
                 val jobGroup =
                     resolveEnvironmentPlaceholders(scheduleAnnotation.jobGroup)
-                        .ifBlank { resolveEnvironmentPlaceholders(simplyQuartzProperties.defaultJobGroupName) }
+                        .ifBlank { jobClass.`package`.name }
                 val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
                 scheduleJob(jobClass, jobName, jobGroup, cronExpression)
                 newJobKeysSet.add(JobKey.jobKey(jobName, jobGroup))
@@ -106,22 +105,6 @@ class JobScheduler(
             .build()
 
         if (scheduler.checkExists(jobKey)) {
-            // Check if the job class still exists
-            // quartz uses class in getJobDetail (called by rescheduleJob), this throws an error if a class is moved because job key is not
-            // dependent on the class' path but is used to determine jobs to reschedule
-            // While Iterating over implementors of Job class, an existing job name will be found,
-            // but the class will no longer exist at the path, so we need to catch the exception and reschedule the job
-            // after deleting the existing job
-
-            try {
-                scheduler.getJobDetail(jobKey)
-            } catch (e: SchedulerException) {
-                logger.warn("Job class or job detail of $jobName has been removed, removing the job from the scheduler")
-                scheduler.deleteJob(jobKey)
-                scheduler.scheduleJob(jobDetail, newTrigger)
-                return
-            }
-
             scheduler.rescheduleJob(newTrigger.key, newTrigger)
         } else {
             scheduler.scheduleJob(jobDetail, newTrigger)
