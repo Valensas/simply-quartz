@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.context.event.ApplicationStartedEvent
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Configuration
@@ -30,6 +31,7 @@ class MainClassHolder : ApplicationListener<ApplicationStartedEvent> {
 
 @Configuration
 @ConditionalOnProperty("simplyquartz.enabled", havingValue = "true")
+@EnableConfigurationProperties(SimplyQuartzProperties::class)
 class JobScheduler(
     private val scheduler: Scheduler,
     private val applicationContext: ApplicationContext,
