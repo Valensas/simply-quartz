@@ -3,9 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "3.2.4"
-    id("org.jmailen.kotlinter") version "4.2.0"
+    id("org.jmailen.kotlinter") version "4.3.0"
     id("io.spring.dependency-management") version "1.1.4"
-    id("org.graalvm.buildtools.native") version "0.9.28"
 
     id("maven-publish")
     id("java-library")
@@ -16,10 +15,10 @@ plugins {
 }
 
 group = "com.valensas"
-version = "0.0.1"
+version = "0.1.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -47,7 +46,7 @@ dependencies {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += "-Xjsr305=strict"
-        jvmTarget = "21"
+        jvmTarget = "17"
     }
 }
 
@@ -68,11 +67,11 @@ centralPortal {
     password = System.getenv("SONATYPE_PASSWORD")
 
     pom {
-        name = "Exposed Extras"
-        description = "An utility library that adds features to Exposed ORM"
+        name = "Simply Quartz"
+        description = "An utility library that adds features to Spring Quartz"
         url = "https://valensas.com/"
         scm {
-            url = "https://github.com/Valensas/exposed-extras"
+            url = "https://github.com/Valensas/simply-quartz"
         }
 
         licenses {
