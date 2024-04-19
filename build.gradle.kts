@@ -50,10 +50,6 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.named("processAot") {
-    enabled = false
-}
-
 signing {
     val keyId = System.getenv("SIGNING_KEYID")
     val secretKey = System.getenv("SIGNING_SECRETKEY")
