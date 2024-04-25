@@ -67,77 +67,7 @@ class JobScheduler(
                     resolveEnvironmentPlaceholders(scheduleAnnotation.jobGroup)
                         .ifBlank { jobClass.`package`.name }
 
-                val jobKey = JobKey.jobKey(jobName, jobGroup)
-
-                val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
-
-                val fixedDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.fixedDelayString)
-
-                val initialDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.initialDelayString)
-
-                val fixedDelay = scheduleAnnotation.fixedDelay
-
-                val initialDelay = scheduleAnnotation.initialDelay
-
-                val fixedDelayParameterSet = fixedDelayString != "" || fixedDelay != -1L
-                val initialDelayParameterSet = initialDelayString != "" || initialDelay != -1L
-                val cronParameterSet = cronExpression != ""
-
-                if (fixedDelayParameterSet && cronParameterSet) {
-                    throw IllegalArgumentException("Both fixed delay and cron parameters are set for job $jobName")
-                }
-
-                if (initialDelayParameterSet && cronParameterSet) {
-                    throw IllegalArgumentException("Both initial delay and cron parameters are set for job $jobName")
-                }
-
-                if (fixedDelayString != "" || fixedDelay != -1L) {
-                    var finalFixedDelay = if (fixedDelayString != "") {
-                        fixedDelayString.toLongOrNull()
-                    } else {
-                        fixedDelay
-                    }
-
-                    if (finalFixedDelay == null) {
-                        throw IllegalArgumentException("Invalid fixed delay string value for job $jobName")
-                    }
-
-                    if (finalFixedDelay == -1L) {
-                        logger.info("Skipping disabled fixed delay job $jobName")
-                        return@let
-                    }
-
-                    if (scheduleAnnotation.timeUnit != TimeUnit.MILLISECONDS) {
-                        finalFixedDelay = scheduleAnnotation.timeUnit.toMillis(finalFixedDelay)
-                    }
-
-                    var finalInitialDelay = if (initialDelayString != "") {
-                        initialDelayString.toLongOrNull()
-                    } else {
-                        initialDelay
-                    }
-
-                    if (finalInitialDelay == null) {
-                        throw IllegalArgumentException("Invalid initial delay string value for job $jobName")
-                    }
-
-                    if (finalInitialDelay == -1L) {
-                        finalInitialDelay = 0L
-                    }
-
-                    scheduleFixedDelayJob(jobClass, jobName, jobGroup, finalInitialDelay, finalFixedDelay)
-                } else if (cronExpression != "") {
-                    if (cronExpression == scheduleAnnotation.CRON_DISABLED) {
-                        logger.info("Skipping disabled cron job $jobName")
-                        return@let
-                    }
-
-                    scheduleCronJob(jobClass, jobName, jobGroup, cronExpression)
-                } else {
-                    throw IllegalArgumentException("No scheduling parameters provided for job $jobName")
-                }
-
-                newJobKeysSet.add(jobKey)
+                handleAnnotation(scheduleAnnotation, jobClass, jobName, jobGroup, newJobKeysSet)
             }
         }
 
@@ -162,6 +92,81 @@ class JobScheduler(
         return simplyQuartzProperties.packagesToScan
             ?: mainClassHolder.mainApplicationClass?.`package`?.name?.let { listOf(it) }
             ?: throw IllegalStateException("Unable to determine base package for job scanning")
+    }
+
+    private fun handleAnnotation(scheduleAnnotation: QuartzSchedule, jobClass: Class<out Job>, jobName: String, jobGroup: String, newJobKeysSet: MutableSet<JobKey>) {
+        val jobKey = JobKey.jobKey(jobName, jobGroup)
+
+        val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
+
+        val fixedDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.fixedDelayString)
+
+        val initialDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.initialDelayString)
+
+        val fixedDelay = scheduleAnnotation.fixedDelay
+
+        val initialDelay = scheduleAnnotation.initialDelay
+
+        val fixedDelayParameterSet = fixedDelayString != "" || fixedDelay != -1L
+        val initialDelayParameterSet = initialDelayString != "" || initialDelay != -1L
+        val cronParameterSet = cronExpression != ""
+
+        if (fixedDelayParameterSet && cronParameterSet) {
+            throw IllegalArgumentException("Both fixed delay and cron parameters are set for job $jobName")
+        }
+
+        if (initialDelayParameterSet && cronParameterSet) {
+            throw IllegalArgumentException("Both initial delay and cron parameters are set for job $jobName")
+        }
+
+        if (fixedDelayParameterSet) {
+            var finalFixedDelay = if (fixedDelayString != "") {
+                fixedDelayString.toLongOrNull()
+            } else {
+                fixedDelay
+            }
+
+            if (finalFixedDelay == null) {
+                throw IllegalArgumentException("Invalid fixed delay string value for job $jobName")
+            }
+
+            if (finalFixedDelay == -1L) {
+                logger.info("Skipping disabled fixed delay job $jobName")
+                return
+            }
+
+            var finalInitialDelay = if (initialDelayString != "") {
+                initialDelayString.toLongOrNull()
+            } else {
+                initialDelay
+            }
+
+            if (finalInitialDelay == null) {
+                throw IllegalArgumentException("Invalid initial delay string value for job $jobName")
+            }
+
+            if (finalInitialDelay == -1L) {
+                finalInitialDelay = 0L
+            }
+
+            if (scheduleAnnotation.timeUnit != TimeUnit.MILLISECONDS) {
+                finalFixedDelay = scheduleAnnotation.timeUnit.toMillis(finalFixedDelay)
+                finalInitialDelay = scheduleAnnotation.timeUnit.toMillis(finalInitialDelay)
+            }
+
+            scheduleFixedDelayJob(jobClass, jobName, jobGroup, finalInitialDelay, finalFixedDelay)
+        } else if (cronParameterSet) {
+            if (cronExpression == scheduleAnnotation.CRON_DISABLED) {
+                logger.info("Skipping disabled cron job $jobName")
+                return
+            }
+
+            scheduleCronJob(jobClass, jobName, jobGroup, cronExpression)
+        } else {
+            throw IllegalArgumentException("No scheduling parameters provided for job $jobName")
+        }
+
+        newJobKeysSet.add(jobKey)
     }
 
     private fun scheduleFixedDelayJob(
