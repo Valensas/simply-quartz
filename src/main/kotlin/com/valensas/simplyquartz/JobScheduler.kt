@@ -5,6 +5,7 @@ import org.quartz.Job
 import org.quartz.JobBuilder
 import org.quartz.JobKey
 import org.quartz.Scheduler
+import org.quartz.SimpleScheduleBuilder
 import org.quartz.TriggerBuilder
 import org.quartz.impl.matchers.GroupMatcher
 import org.reflections.Reflections
@@ -18,6 +19,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
+import java.util.concurrent.TimeUnit
 
 // Need to get the main application class to determine the root package for job scanning at runtime
 @Configuration
@@ -64,9 +66,78 @@ class JobScheduler(
                 val jobGroup =
                     resolveEnvironmentPlaceholders(scheduleAnnotation.jobGroup)
                         .ifBlank { jobClass.`package`.name }
+
+                val jobKey = JobKey.jobKey(jobName, jobGroup)
+
                 val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
-                scheduleJob(jobClass, jobName, jobGroup, cronExpression)
-                newJobKeysSet.add(JobKey.jobKey(jobName, jobGroup))
+
+                val fixedDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.fixedDelayString)
+
+                val initialDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.initialDelayString)
+
+                val fixedDelay = scheduleAnnotation.fixedDelay
+
+                val initialDelay = scheduleAnnotation.initialDelay
+
+                val fixedDelayParameterSet = fixedDelayString != "" || fixedDelay != -1L
+                val initialDelayParameterSet = initialDelayString != "" || initialDelay != -1L
+                val cronParameterSet = cronExpression != ""
+
+                if (fixedDelayParameterSet && cronParameterSet) {
+                    throw IllegalArgumentException("Both fixed delay and cron parameters are set for job $jobName")
+                }
+
+                if (initialDelayParameterSet && cronParameterSet) {
+                    throw IllegalArgumentException("Both initial delay and cron parameters are set for job $jobName")
+                }
+
+                if (fixedDelayString != "" || fixedDelay != -1L) {
+                    var finalFixedDelay = if (fixedDelayString != "") {
+                        fixedDelayString.toLongOrNull()
+                    } else {
+                        fixedDelay
+                    }
+
+                    if (finalFixedDelay == null) {
+                        throw IllegalArgumentException("Invalid fixed delay string value for job $jobName")
+                    }
+
+                    if (finalFixedDelay == -1L) {
+                        logger.info("Skipping disabled fixed delay job $jobName")
+                        return@let
+                    }
+
+                    if (scheduleAnnotation.timeUnit != TimeUnit.MILLISECONDS) {
+                        finalFixedDelay = scheduleAnnotation.timeUnit.toMillis(finalFixedDelay)
+                    }
+
+                    var finalInitialDelay = if (initialDelayString != "") {
+                        initialDelayString.toLongOrNull()
+                    } else {
+                        initialDelay
+                    }
+
+                    if (finalInitialDelay == null) {
+                        throw IllegalArgumentException("Invalid initial delay string value for job $jobName")
+                    }
+
+                    if (finalInitialDelay == -1L) {
+                        finalInitialDelay = 0L
+                    }
+
+                    scheduleFixedDelayJob(jobClass, jobName, jobGroup, finalInitialDelay, finalFixedDelay)
+                } else if (cronExpression != "") {
+                    if (cronExpression == scheduleAnnotation.CRON_DISABLED) {
+                        logger.info("Skipping disabled cron job $jobName")
+                        return@let
+                    }
+
+                    scheduleCronJob(jobClass, jobName, jobGroup, cronExpression)
+                } else {
+                    throw IllegalArgumentException("No scheduling parameters provided for job $jobName")
+                }
+
+                newJobKeysSet.add(jobKey)
             }
         }
 
@@ -93,7 +164,34 @@ class JobScheduler(
             ?: throw IllegalStateException("Unable to determine base package for job scanning")
     }
 
-    private fun scheduleJob(clazz: Class<out Job>, jobName: String, jobGroup: String, cronExpression: String) {
+    private fun scheduleFixedDelayJob(
+        jobClass: Class<out Job>?,
+        jobName: String?,
+        jobGroup: String?,
+        finalInitialDelay: Long,
+        finalFixedDelay: Long
+    ) {
+        val jobKey = JobKey.jobKey(jobName, jobGroup)
+        val newTrigger = TriggerBuilder.newTrigger()
+            .withIdentity(jobName, jobGroup)
+            .forJob(jobName, jobGroup)
+            .withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInMilliseconds(finalFixedDelay).repeatForever())
+            .startAt(java.util.Date(System.currentTimeMillis() + finalInitialDelay))
+            .build()
+        val jobDetail = JobBuilder.newJob(jobClass)
+            .requestRecovery(false)
+            .withIdentity(jobName, jobGroup)
+            .storeDurably()
+            .build()
+
+        if (scheduler.checkExists(jobKey)) {
+            scheduler.rescheduleJob(newTrigger.key, newTrigger)
+        } else {
+            scheduler.scheduleJob(jobDetail, newTrigger)
+        }
+    }
+
+    private fun scheduleCronJob(clazz: Class<out Job>, jobName: String, jobGroup: String, cronExpression: String) {
         val jobKey = JobKey.jobKey(jobName, jobGroup)
         val newTrigger = TriggerBuilder.newTrigger()
             .withIdentity(jobName, jobGroup)
