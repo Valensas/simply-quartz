@@ -123,9 +123,11 @@ class JobScheduler(
 
         if (fixedDelayString.isNotBlank()) {
             var finalFixedDelay =
-                fixedDelayString.toLongOrNull().takeIf { it != null } ?: Duration.parse(fixedDelayString).toMillis()
+                fixedDelayString.toLongOrNull()
+                    .takeIf { it != null } ?: Duration.parse(fixedDelayString).toMillis()
             var finalInitialDelay =
-                initialDelayString.toLongOrNull().takeIf { it != null } ?: Duration.parse(initialDelayString).toMillis()
+                if (initialDelayString.isBlank()) 0 else initialDelayString.toLongOrNull().takeIf { it != null }
+                    ?: Duration.parse(initialDelayString).toMillis()
 
             if (finalFixedDelay < 0) {
                 throw IllegalArgumentException("Fixed delay must be a positive number for job $jobKey")

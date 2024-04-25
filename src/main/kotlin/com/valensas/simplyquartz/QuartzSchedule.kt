@@ -14,7 +14,7 @@ annotation class QuartzSchedule(
 
     val timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
 
-    val enabled: String = "",
+    val enabled: String = "true",
 
     val jobName: String = "",
 
