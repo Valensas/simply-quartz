@@ -10,7 +10,7 @@ annotation class QuartzSchedule(
 
     val fixedDelay: String = "",
 
-    val initialDelay: String = "",
+    val initialDelay: String = "0",
 
     val timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
 
