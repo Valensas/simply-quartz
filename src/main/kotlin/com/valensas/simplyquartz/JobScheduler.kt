@@ -5,7 +5,6 @@ import org.quartz.Job
 import org.quartz.JobBuilder
 import org.quartz.JobKey
 import org.quartz.Scheduler
-import org.quartz.SimpleScheduleBuilder
 import org.quartz.TriggerBuilder
 import org.quartz.impl.matchers.GroupMatcher
 import org.reflections.Reflections
@@ -19,7 +18,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
-import java.time.Duration
 
 // Need to get the main application class to determine the root package for job scanning at runtime
 @Configuration
@@ -112,60 +110,9 @@ class JobScheduler(
     ) {
         val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
 
-        val fixedDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.fixedDelay)
+        cronExpression.ifBlank { throw IllegalArgumentException("No cron expression provided for job $jobKey") }
 
-        val initialDelayString = resolveEnvironmentPlaceholders(scheduleAnnotation.initialDelay)
-
-        if (fixedDelayString.isNotBlank() && cronExpression.isNotBlank()) {
-            throw IllegalArgumentException("Both fixed delay and cron parameters are set for job $jobKey")
-        }
-
-        if (fixedDelayString.isNotBlank()) {
-            val fixedDelay = Duration.parse(fixedDelayString).toMillis().runCatching { this }.getOrElse {
-                throw IllegalArgumentException("Fixed delay must be a valid duration for job $jobKey , raw value $fixedDelayString")
-            }
-
-            val initialDelay = Duration.parse(initialDelayString).toMillis().runCatching { this }.getOrElse {
-                throw IllegalArgumentException("Initial delay must be a valid duration for job $jobKey , raw value $initialDelayString")
-            }
-
-            if (fixedDelay < 0) {
-                throw IllegalArgumentException("Fixed delay must be a positive number for job $jobKey , parsed value $fixedDelay")
-            }
-
-            scheduleFixedDelayJob(jobClass, jobKey, initialDelay, fixedDelay)
-        } else if (cronExpression.isNotBlank()) {
-            scheduleCronJob(jobClass, jobKey, cronExpression)
-        } else {
-            throw IllegalArgumentException("No scheduling parameters provided for job $jobKey")
-        }
-    }
-
-    private fun scheduleFixedDelayJob(
-        jobClass: Class<out Job>?,
-        jobKey: JobKey,
-        finalInitialDelay: Long,
-        finalFixedDelay: Long
-    ) {
-        val newTrigger = TriggerBuilder.newTrigger()
-            .withIdentity(jobKey.name, jobKey.group)
-            .forJob(jobKey)
-            .withSchedule(
-                SimpleScheduleBuilder.simpleSchedule().withIntervalInMilliseconds(finalFixedDelay).repeatForever()
-            )
-            .startAt(java.util.Date(System.currentTimeMillis() + finalInitialDelay))
-            .build()
-        val jobDetail = JobBuilder.newJob(jobClass)
-            .requestRecovery(false)
-            .withIdentity(jobKey)
-            .storeDurably()
-            .build()
-
-        if (scheduler.checkExists(jobKey)) {
-            scheduler.rescheduleJob(newTrigger.key, newTrigger)
-        } else {
-            scheduler.scheduleJob(jobDetail, newTrigger)
-        }
+        scheduleCronJob(jobClass, jobKey, cronExpression)
     }
 
     private fun scheduleCronJob(clazz: Class<out Job>, jobKey: JobKey, cronExpression: String) {

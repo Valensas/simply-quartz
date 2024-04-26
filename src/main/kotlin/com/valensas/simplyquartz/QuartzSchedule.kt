@@ -9,10 +9,6 @@ annotation class QuartzSchedule(
 
     val cron: String = "",
 
-    val fixedDelay: String = "",
-
-    val initialDelay: String = "PT0S",
-
     val enabled: String = "true",
 
     val jobName: String = "",
