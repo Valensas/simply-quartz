@@ -122,22 +122,22 @@ class JobScheduler(
         }
 
         if (fixedDelayString.isNotBlank()) {
-            var finalFixedDelay = fixedDelayString.toLongOrNull()
+            var fixedDelay = fixedDelayString.toLongOrNull()
                 ?: Duration.parse(fixedDelayString).toMillis()
 
-            var finalInitialDelay = initialDelayString.toLongOrNull()
+            var initialDelay = initialDelayString.toLongOrNull()
                 ?: Duration.parse(initialDelayString).toMillis()
 
-            if (finalFixedDelay < 0) {
+            if (fixedDelay < 0) {
                 throw IllegalArgumentException("Fixed delay must be a positive number for job $jobKey")
             }
 
             if (scheduleAnnotation.timeUnit != TimeUnit.MILLISECONDS) {
-                finalFixedDelay = scheduleAnnotation.timeUnit.toMillis(finalFixedDelay)
-                finalInitialDelay = scheduleAnnotation.timeUnit.toMillis(finalInitialDelay)
+                fixedDelay = scheduleAnnotation.timeUnit.toMillis(fixedDelay)
+                initialDelay = scheduleAnnotation.timeUnit.toMillis(initialDelay)
             }
 
-            scheduleFixedDelayJob(jobClass, jobKey, finalInitialDelay, finalFixedDelay)
+            scheduleFixedDelayJob(jobClass, jobKey, initialDelay, fixedDelay)
         } else if (cronExpression.isNotBlank()) {
             scheduleCronJob(jobClass, jobKey, cronExpression)
         } else {
