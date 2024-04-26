@@ -1,7 +1,8 @@
 package com.valensas.simplyquartz
 
-import java.util.concurrent.TimeUnit
+import org.springframework.scheduling.annotation.Scheduled
 
+@Scheduled
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class QuartzSchedule(
@@ -10,9 +11,7 @@ annotation class QuartzSchedule(
 
     val fixedDelay: String = "",
 
-    val initialDelay: String = "0",
-
-    val timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
+    val initialDelay: String = "PT0S",
 
     val enabled: String = "true",
 

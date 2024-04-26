@@ -20,7 +20,6 @@ import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 // Need to get the main application class to determine the root package for job scanning at runtime
 @Configuration
@@ -122,19 +121,12 @@ class JobScheduler(
         }
 
         if (fixedDelayString.isNotBlank()) {
-            var fixedDelay = fixedDelayString.toLongOrNull()
-                ?: Duration.parse(fixedDelayString).toMillis()
+            val fixedDelay = Duration.parse(fixedDelayString).toMillis()
 
-            var initialDelay = initialDelayString.toLongOrNull()
-                ?: Duration.parse(initialDelayString).toMillis()
+            val initialDelay = Duration.parse(initialDelayString).toMillis()
 
             if (fixedDelay < 0) {
-                throw IllegalArgumentException("Fixed delay must be a positive number for job $jobKey")
-            }
-
-            if (scheduleAnnotation.timeUnit != TimeUnit.MILLISECONDS) {
-                fixedDelay = scheduleAnnotation.timeUnit.toMillis(fixedDelay)
-                initialDelay = scheduleAnnotation.timeUnit.toMillis(initialDelay)
+                throw IllegalArgumentException("Fixed delay must be a positive number for job $jobKey , parsed value $fixedDelay")
             }
 
             scheduleFixedDelayJob(jobClass, jobKey, initialDelay, fixedDelay)
