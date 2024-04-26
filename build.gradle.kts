@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.valensas"
-version = "0.1.1"
+version = "0.2.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -41,6 +41,7 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-quartz:3.2.0")
     implementation("org.reflections:reflections:0.10.2")
+    implementation("io.micrometer:micrometer-core:1.12.4")
 }
 
 tasks.getByName<Jar>("jar") {

@@ -64,9 +64,19 @@ class JobScheduler(
                 val jobGroup =
                     resolveEnvironmentPlaceholders(scheduleAnnotation.jobGroup)
                         .ifBlank { jobClass.`package`.name }
-                val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
-                scheduleJob(jobClass, jobName, jobGroup, cronExpression)
-                newJobKeysSet.add(JobKey.jobKey(jobName, jobGroup))
+
+                val jobKey = JobKey.jobKey(jobName, jobGroup)
+
+                val enabled = resolveEnvironmentPlaceholders(scheduleAnnotation.enabled).toBoolean()
+
+                if (!enabled) {
+                    logger.info("Job $jobKey is disabled")
+                    return@let
+                }
+
+                handleAnnotation(scheduleAnnotation, jobClass, jobKey)
+
+                newJobKeysSet.add(jobKey)
             }
         }
 
@@ -93,16 +103,27 @@ class JobScheduler(
             ?: throw IllegalStateException("Unable to determine base package for job scanning")
     }
 
-    private fun scheduleJob(clazz: Class<out Job>, jobName: String, jobGroup: String, cronExpression: String) {
-        val jobKey = JobKey.jobKey(jobName, jobGroup)
+    private fun handleAnnotation(
+        scheduleAnnotation: QuartzSchedule,
+        jobClass: Class<out Job>,
+        jobKey: JobKey
+    ) {
+        val cronExpression = resolveEnvironmentPlaceholders(scheduleAnnotation.cron)
+
+        cronExpression.ifBlank { throw IllegalArgumentException("No cron expression provided for job $jobKey") }
+
+        scheduleCronJob(jobClass, jobKey, cronExpression)
+    }
+
+    private fun scheduleCronJob(clazz: Class<out Job>, jobKey: JobKey, cronExpression: String) {
         val newTrigger = TriggerBuilder.newTrigger()
-            .withIdentity(jobName, jobGroup)
-            .forJob(jobName, jobGroup)
+            .withIdentity(jobKey.name, jobKey.group)
+            .forJob(jobKey)
             .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
             .build()
         val jobDetail = JobBuilder.newJob(clazz)
             .requestRecovery(false)
-            .withIdentity(jobName, jobGroup)
+            .withIdentity(jobKey)
             .storeDurably()
             .build()
 
