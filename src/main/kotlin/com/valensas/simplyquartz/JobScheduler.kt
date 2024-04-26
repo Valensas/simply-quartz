@@ -121,7 +121,6 @@ class JobScheduler(
         }
 
         if (fixedDelayString.isNotBlank()) {
-
             val fixedDelay = Duration.parse(fixedDelayString).toMillis().runCatching { this }.getOrElse {
                 throw IllegalArgumentException("Fixed delay must be a valid duration for job $jobKey , raw value $fixedDelayString")
             }
