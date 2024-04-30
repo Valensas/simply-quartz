@@ -1,6 +1,7 @@
 package com.valensas.simplyquartz
 
 import io.micrometer.core.instrument.Metrics
+import io.micrometer.core.instrument.Timer
 import org.quartz.Job
 import org.quartz.JobExecutionContext
 import kotlin.time.measureTimedValue
@@ -8,7 +9,7 @@ import kotlin.time.toJavaDuration
 
 abstract class TimedJob : Job {
 
-    private val timers = mutableMapOf<String, io.micrometer.core.instrument.Timer>()
+    private val timers = mutableMapOf<String, Timer>()
 
     override fun execute(context: JobExecutionContext) {
         val result = measureTimedValue { kotlin.runCatching { executeTimed(context) } }
