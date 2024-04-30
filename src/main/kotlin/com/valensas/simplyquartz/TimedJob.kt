@@ -1,6 +1,5 @@
 package com.valensas.simplyquartz
 
-import io.micrometer.core.instrument.ImmutableTag
 import io.micrometer.core.instrument.Metrics
 import org.quartz.Job
 import org.quartz.JobExecutionContext
@@ -16,21 +15,18 @@ abstract class TimedJob : Job {
 
         val jobName = this.javaClass.simpleName
         val jobGroup = this.javaClass.`package`.name
-        val exceptionClass = result.value.exceptionOrNull()?.javaClass?.simpleName
+        val exceptionClass = result.value.exceptionOrNull()?.javaClass?.simpleName ?: "none"
         val key = "$jobName-$jobGroup-$exceptionClass"
 
         val timer = timers.getOrPut(key) {
-            val tags = listOfNotNull(
-                ImmutableTag("job", jobName),
-                ImmutableTag("group", jobGroup),
-                exceptionClass?.let { ImmutableTag("exception", it) }
-            )
-
-            val timerName = if (exceptionClass == null) "qrtz_scheduled_job" else "qrtz_scheduled_job_exception"
-
             Metrics.globalRegistry.timer(
-                timerName,
-                tags
+                "quartz_scheduled_job",
+                "job_name",
+                jobName,
+                "job_group",
+                jobGroup,
+                "exception",
+                exceptionClass
             )
         }
 
