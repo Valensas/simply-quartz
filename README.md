@@ -44,8 +44,8 @@ simplyquartz:
   packagesToScan: com.example
 ```
 
-Note: Both simplyquartz properties are optional. If you don't provide them, simply quartz will scan all the packages
-within the same package as your main class, and be enabled by default.
+Note: Both simplyquartz properties are optional. Simply Quartz is enabled by default. If you don't provide packagesToScan, simply quartz will scan all the packages
+within the same package as your main class, or any subpackages to find classes implementing Job or extending TimedJob. You can provide a list of packages to scan.
 
 **Warning:** If you are using migrations for creating quartz tables, you should set `jdbc.initialize-schema` to `never`
 to prevent quartz from creating or possibly overwriting tables itself.
