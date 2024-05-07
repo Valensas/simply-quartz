@@ -1,4 +1,4 @@
-Simply Quartz
+# Simply Quartz
 =============
 Simply Quartz is a quality of life library for scheduling jobs with cron schedules in spring boot applications. It
 provides a simple way to schedule tasks using Quartz Scheduler. It tries to mock the simple usage of @Scheduled
@@ -87,7 +87,7 @@ class SampleJob : TimedJob() {
 }
 ```
 
-Note: `@DisallowConcurrentExecution` belongs to quartz library, and `@QuartzSchedule` belongs to simply quartz library.
+Note: `@DisallowConcurrentExecution` belongs to Quartz library, and `@QuartzSchedule` belongs to SimplyQuartz library.
 `@DisallowConcurrentExecution` is used to prevent the job from running concurrently. If you don't want to prevent
 concurrent execution, you can remove it. This annotation supports clustered mod too and will prevent concurrent
 execution across the cluster, if clustered mod is enabled and instances have unique ids.
