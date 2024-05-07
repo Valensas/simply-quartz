@@ -89,7 +89,7 @@ class SampleJob : TimedJob() {
 
 Note: `@DisallowConcurrentExecution` belongs to Quartz library, and `@QuartzSchedule` belongs to SimplyQuartz library.
 `@DisallowConcurrentExecution` is used to prevent the job from running concurrently. If you don't want to prevent
-concurrent execution, you can remove it. This annotation supports clustered mod too and will prevent concurrent
+concurrent execution, you can remove it. This annotation supports clustered mode too and will prevent concurrent
 execution across the cluster, if clustered mod is enabled and instances have unique ids.
 
 Jobs that extend `TimedJob` will automatically record the execution time and count metrics using Micrometer.
