@@ -136,3 +136,22 @@ class SampleJob(
     }
 }
 ```
+
+# Native Image
+
+To use with graal vm native image, you need to add the following reflection configuration to your build.gradle.kts file.
+
+```kotlin
+tasks.processAot {
+    doFirst {
+        systemProperty(
+            "com.valensas.nativesupport.reflect-packages", """
+                ....
+                org.quartz.simpl
+                org.quartz.impl
+                org.quartz.utils
+        """.trimIndent()
+        )
+    }
+}
+```
