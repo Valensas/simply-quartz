@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.valensas"
-version = "0.2.1"
+version = "1.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -40,7 +40,6 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-quartz:3.2.0")
-    implementation("org.reflections:reflections:0.10.2")
     implementation("io.micrometer:micrometer-core:1.12.4")
 }
 
@@ -54,6 +53,19 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "17"
     }
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}
+
 
 signing {
     val keyId = System.getenv("SIGNING_KEYID")
@@ -89,5 +101,7 @@ centralPortal {
                 email.set("info@valensas.com")
             }
         }
+
+
     }
 }
