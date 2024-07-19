@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
 
-
 @Configuration
 @ConditionalOnProperty("simplyquartz.enabled", havingValue = "true")
 @EnableConfigurationProperties(SimplyQuartzProperties::class)
@@ -57,7 +56,6 @@ class JobScheduler(
                 scheduleCronJob(jobClass, jobKey, cronExpression)
 
                 newJobKeysSet.add(jobKey)
-
             }
         }
 
@@ -71,7 +69,6 @@ class JobScheduler(
         logger.info("Starting scheduler")
 
         scheduler.start()
-
     }
 
     private fun resolveEnvironmentPlaceholders(value: String): String {
